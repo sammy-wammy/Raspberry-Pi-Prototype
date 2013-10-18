@@ -1,0 +1,1 @@
+/usr/bin/gcc      CMakeFiles/mmaldemo.dir/main.c.o  -o mmaldemo -rdynamic -L/opt/vc/lib -L/opt/vc/src/hello_pi/libs/vgfont -L/home/pi/gpio/wiringPi/devLib -lmmal_core -lmmal_util -lmmal_vc_client -lvcos -lbcm_host -Wl,-rpath,/opt/vc/lib:/opt/vc/src/hello_pi/libs/vgfont:/home/pi/gpio/wiringPi/devLib 
