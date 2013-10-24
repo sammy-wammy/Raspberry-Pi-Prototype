@@ -1,8 +1,8 @@
 /* 
  * File:   opencv_demo.c
- * Author: Tasanakorn
+ * Author: Hassan : author Tasanakorn
  *
- * Created on May 22, 2013, 1:52 PM
+ * Created on Oct 1, 2013, 00:00 AM
  */
 
 #include <stdio.h>
@@ -27,11 +27,14 @@
 #define MMAL_CAMERA_PREVIEW_PORT 0
 #define MMAL_CAMERA_VIDEO_PORT 1
 #define MMAL_CAMERA_CAPTURE_PORT 2
-//GPIO
-#define BUZZ 0 
+
+/* GPIO pin assignment */
+#define BUZZ 0
 #define BUTTON 2
 #define SLC_BUTTON 3
 #define FACE 7
+/* ******************* */
+
 typedef struct {
     int video_width;
     int video_height;
@@ -104,12 +107,13 @@ static void video_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffe
 }
 
 int main(int argc, char** argv) {
-   
+    /* GPIO pins setup */
     wiringPiSetup();
     pinMode(BUZZ, OUTPUT);
     pinMode(BUTTON, INPUT);
     pinMode(SLC_BUTTON, INPUT);
     pinMode(FACE, OUTPUT);
+    /* *************** */
 
     MMAL_COMPONENT_T *camera = 0;
     MMAL_COMPONENT_T *preview = 0;
@@ -315,7 +319,8 @@ int main(int argc, char** argv) {
 
     graphics_display_resource(img_overlay, 0, 1, 0, 0, display_width, display_height, VC_DISPMAN_ROT0, 1);
     char text[256];
-
+    /* *****SAM***** */
+    /* system flags and control variables */
     int slc_flag = 0; // 1 == True, 0 == false
     int padding_flag = 1;// 1 == True, 0 == flase
     int padding_x = 0; // used
@@ -324,39 +329,31 @@ int main(int argc, char** argv) {
     int padding_h = 0; // used
     int out_of_bound = 0; // used
     int recalibrate = 0 ; // not used
-     while (1) {
-        //printf("Hello!!!!!");
-        if (vcos_semaphore_wait(&(userdata.complete_semaphore)) == VCOS_SUCCESS) {
-            opencv_frames++;
-            float fps = 0.0;
-            if (1) {
+    /* ********************************* */
+    while(1)
+    {
+    	if(vcos_semaphore_wait(&(userdata.complete_semaphore)) == VCOS_SUCCESS)
+	{
+        	opencv_frames++;
+            	float fps = 0.0;
                 clock_gettime(CLOCK_MONOTONIC, &t2);
                 float d = (t2.tv_sec + t2.tv_nsec / 1000000000.0) - (t1.tv_sec + t1.tv_nsec / 1000000000.0);
-                if (d > 0) {
-                    fps = opencv_frames / d;
-                } else {
-                    fps = opencv_frames;
-                }
-
-           // printf("  OpenCV Frame = %d, Framerate = %.2f fps \n", opencv_frames, fps);
-            }
-
-            graphics_resource_fill(img_overlay, 0, 0, GRAPHICS_RESOURCE_WIDTH, GRAPHICS_RESOURCE_HEIGHT, GRAPHICS_RGBA32(0, 0, 0, 0x00));
-            graphics_resource_fill(img_overlay2, 0, 0, GRAPHICS_RESOURCE_WIDTH, GRAPHICS_RESOURCE_HEIGHT, GRAPHICS_RGBA32(0, 0, 0, 0x00));
-
-
-            if (1)
-           {
-                cvResize(userdata.image, userdata.image2, CV_INTER_LINEAR);
+                if (d > 0)
+		{
+                	fps = opencv_frames / d;
+               	}
+		else
+		{
+                	fps = opencv_frames;
+               	}
+            	graphics_resource_fill(img_overlay, 0, 0, GRAPHICS_RESOURCE_WIDTH, GRAPHICS_RESOURCE_HEIGHT, GRAPHICS_RGBA32(0, 0, 0, 0x00));
+            	graphics_resource_fill(img_overlay2, 0, 0, GRAPHICS_RESOURCE_WIDTH, GRAPHICS_RESOURCE_HEIGHT, GRAPHICS_RGBA32(0, 0, 0, 0x00));
+               	cvResize(userdata.image, userdata.image2, CV_INTER_LINEAR);
                 CvSeq* objects = cvHaarDetectObjects(userdata.image2, userdata.cascade, userdata.storage, 1.4, 3, 0, cvSize(100, 100), cvSize(150, 150));
                 CvRect* r;
-              //  if(objects != 0)
-             //  {
-
-	       	int last_slc = LOW;
+	       	/* silence input checkpoint */
+		int last_slc = LOW;
 	       	int current_slc = digitalRead(SLC_BUTTON);
-		//printf("current_slc: %d\n", current_slc);
-
 	       	if(current_slc == HIGH && last_slc == LOW)
 	       	{
 			slc_flag = !slc_flag;
@@ -367,86 +364,75 @@ int main(int argc, char** argv) {
 		{
 			last_slc = digitalRead(SLC_BUTTON);
 		}
-		printf("slc_flag: %d\n", slc_flag);
-
-               if(objects->total > 0 )//&& slc_flag == 0)
-               {
-                digitalWrite(FACE, HIGH); 
-		 r = (CvRect*) cvGetSeqElem(objects, 0);
-	
-          //     printf("  Face %d [%d, %d, %d, %d] [%d, %d, %d, %d]\n", 0, r->x, r->y, r->width, r->height, (int) ((float) r->x * r_w), (int) (r->y * r_h), (int) (r->width * r_w), (int) (r->height * r_h));
-
-               // int output = LOW;
-		int last_pad = LOW;
-		int current_pad = digitalRead(BUTTON);
-		if(current_pad == HIGH && last_pad == LOW)
+		/* **** */
+              	if(objects->total > 0 )
+               	{
+                	digitalWrite(FACE, HIGH);
+		 	r = (CvRect*) cvGetSeqElem(objects, 0);
+			/* Calibration check */
+         		int last_pad = LOW;
+			int current_pad = digitalRead(BUTTON);
+			if(current_pad == HIGH && last_pad == LOW)
+			{
+				padding_flag = !padding_flag;
+				last_pad = HIGH;
+			}
+			else
+			{
+				last_pad = digitalRead(INPUT);
+			}
+			/* to be removed */
+			/* recalibration stage */
+                	if(padding_flag == 1)
+                  	{
+                   		padding_w = (int)((r->width)*1.30);
+                   		padding_h = (int)((r->height)*1.25);
+                   		padding_y = (int)((r->y) - (padding_h)*0.05);
+                   		padding_x = (int)((r->x) - (padding_w)*0.075);
+                   		padding_flag = 0;
+                  	}
+			/* ******************* */
+                	graphics_resource_fill(img_overlay, padding_x, padding_y, padding_w, padding_h, GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
+                	graphics_resource_fill(img_overlay, padding_x+1, padding_y+1, padding_w-2 ,padding_h-2 , GRAPHICS_RGBA32(0, 0, 0, 0x00));
+                	graphics_resource_fill(img_overlay, r->x, r->y, r->width, r->height, GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
+                	graphics_resource_fill(img_overlay, r->x + 1, r->y + 1, r->width - 2, r->height - 2, GRAPHICS_RGBA32(0, 0, 0, 0x00));
+               		/* Collision Detection Stage*/
+			if((r->x < padding_x) || ((r->x+r->width) > (padding_x + padding_w)) || (r->y < padding_y) || ((r->y + r->height) > (padding_y + padding_h)))
+                 	{
+                  		out_of_bound = 1;
+		 	}
+                 	else
+                 	{
+                  		out_of_bound = 0;
+			}
+			/* *********************** */
+               	}
+		else  //<-- face is detected LED
 		{
-			padding_flag = !padding_flag;
-			last_pad = HIGH;
-		}
-		else
-		{
-			last_pad = digitalRead(INPUT);
-		}
+			digitalWrite(FACE, LOW);
+		}     //<-- ***
+	    	/* Alert stage */
+		if(!slc_flag && out_of_bound )
+	     	{
+			digitalWrite(BUZZ, 1);
+	     	}
+	     	else
+	     	{
+	      		digitalWrite(BUZZ, 0);
+	     	}
+		/***************/
+            	sprintf(text, "Video = %.2f FPS, OpenCV = %.2f FPS", userdata.video_fps, fps);
+            	graphics_resource_render_text_ext(img_overlay2, 0, 0,
+                	GRAPHICS_RESOURCE_WIDTH,
+                    	GRAPHICS_RESOURCE_HEIGHT,
+               		GRAPHICS_RGBA32(0x00, 0xff, 0x00, 0xff), /* fg */
+               		GRAPHICS_RGBA32(0, 0, 0, 0x00), /* bg */
+               		text, strlen(text), 25);
+            	graphics_display_resource(img_overlay, 0, 1, 0, 0, display_width, display_height, VC_DISPMAN_ROT0, 1);
+            	graphics_display_resource(img_overlay2, 0, 2, 0, display_width / 16, GRAPHICS_RESOURCE_WIDTH, GRAPHICS_RESOURCE_HEIGHT, VC_DISPMAN_ROT0, 1);
 
-                if(padding_flag == 1)
-                  {
-                   padding_w = (int)((r->width)*1.30);
-                   padding_h = (int)((r->height)*1.25);
-                   padding_y = (int)((r->y) - (padding_h)*0.05);
-                   padding_x = (int)((r->x) - (padding_w)*0.075);
-                   padding_flag = 0;
-                  }
-                graphics_resource_fill(img_overlay, padding_x, padding_y, padding_w, padding_h, GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
-                graphics_resource_fill(img_overlay, padding_x+1, padding_y+1, padding_w-2 ,padding_h-2 , GRAPHICS_RGBA32(0, 0, 0, 0x00));
-              
-                graphics_resource_fill(img_overlay, r->x, r->y, r->width, r->height, GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
-                graphics_resource_fill(img_overlay, r->x + 1, r->y + 1, r->width - 2, r->height - 2, GRAPHICS_RGBA32(0, 0, 0, 0x00));
-             
-
-               if((r->x < padding_x) || ((r->x+r->width) > (padding_x + padding_w)) || (r->y < padding_y) || ((r->y + r->height) > (padding_y + padding_h))) 
-                 {
-                 // digitalWrite(BUZZ, 1);
-                 // printf("Alert");
-                  out_of_bound = 1; 
-		 }
-                 else
-                 {
-                  out_of_bound = 0; 
-		// digitalWrite(BUZZ, 0);
-                 }
-
-              //rectangle(img_overlay, Point(100, 200), Point(300, 100), cvScaler(0, 255, 0, 100), 1, 8, 0);
-               }
-		else  //<-- face LED
-		{
-		digitalWrite(FACE, LOW); 
-		}   //<-- ***
-            //   }
-            }
-		
-	    if(!slc_flag && out_of_bound )
-	     {
-		digitalWrite(BUZZ, 1);
-	     }
-	     else
-	     {
-	      digitalWrite(BUZZ, 0);
-	     }
-
-            sprintf(text, "Video = %.2f FPS, OpenCV = %.2f FPS", userdata.video_fps, fps);
-            graphics_resource_render_text_ext(img_overlay2, 0, 0,
-                    GRAPHICS_RESOURCE_WIDTH,
-                    GRAPHICS_RESOURCE_HEIGHT,
-                    GRAPHICS_RGBA32(0x00, 0xff, 0x00, 0xff), /* fg */
-                    GRAPHICS_RGBA32(0, 0, 0, 0x00), /* bg */
-                    text, strlen(text), 25);
-
-            graphics_display_resource(img_overlay, 0, 1, 0, 0, display_width, display_height, VC_DISPMAN_ROT0, 1);
-            graphics_display_resource(img_overlay2, 0, 2, 0, display_width / 16, GRAPHICS_RESOURCE_WIDTH, GRAPHICS_RESOURCE_HEIGHT, VC_DISPMAN_ROT0, 1);
-
-        }
-    }
+        } // if
+    } // while
 
     return 0;
 }
