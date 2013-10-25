@@ -328,6 +328,7 @@ int main(int argc, char** argv) {
     int padding_w = 0; // used
     int padding_h = 0; // used
     int out_of_bound = 0; // used
+    int face_flag = 0; // used
     int recalibrate = 0 ; // not used
     /* ********************************* */
     while(1)
@@ -365,11 +366,13 @@ int main(int argc, char** argv) {
 			last_slc = digitalRead(SLC_BUTTON);
 		}
 		/* **** */
-              	if(objects->total > 0 )
+		face_flag = (objects->total > 0);
+              	if(face_flag)
                	{
-                	digitalWrite(FACE, HIGH);
+                	//digitalWrite(FACE, HIGH);
+			//face_flag = 1;
 		 	r = (CvRect*) cvGetSeqElem(objects, 0);
-			/* Calibration check */
+			/* Calibration check *//*
          		int last_pad = LOW;
 			int current_pad = digitalRead(BUTTON);
 			if(current_pad == HIGH && last_pad == LOW)
@@ -383,7 +386,7 @@ int main(int argc, char** argv) {
 			}
 			/* to be removed */
 			/* recalibration stage */
-                	if(padding_flag == 1)
+                	if(padding_flag)
                   	{
                    		padding_w = (int)((r->width)*1.30);
                    		padding_h = (int)((r->height)*1.25);
@@ -397,29 +400,17 @@ int main(int argc, char** argv) {
                 	graphics_resource_fill(img_overlay, r->x, r->y, r->width, r->height, GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
                 	graphics_resource_fill(img_overlay, r->x + 1, r->y + 1, r->width - 2, r->height - 2, GRAPHICS_RGBA32(0, 0, 0, 0x00));
                		/* Collision Detection Stage*/
-			if((r->x < padding_x) || ((r->x+r->width) > (padding_x + padding_w)) || (r->y < padding_y) || ((r->y + r->height) > (padding_y + padding_h)))
-                 	{
-                  		out_of_bound = 1;
-		 	}
-                 	else
-                 	{
-                  		out_of_bound = 0;
-			}
+			out_of_bound = (r->x < padding_x)
+				    || ((r->x+r->width) > (padding_x + padding_w))
+				    || (r->y < padding_y)
+				    || ((r->y + r->height) > (padding_y + padding_h));
 			/* *********************** */
                	}
-		else  //<-- face is detected LED
-		{
-			digitalWrite(FACE, LOW);
-		}     //<-- ***
+  		/* face LED status */
+		digitalWrite(FACE, face_flag);
+		/* ***** */
 	    	/* Alert stage */
-		if(!slc_flag && out_of_bound )
-	     	{
-			digitalWrite(BUZZ, 1);
-	     	}
-	     	else
-	     	{
-	      		digitalWrite(BUZZ, 0);
-	     	}
+		digitalWrite(BUZZ, (!slc_flag && out_of_bound));
 		/***************/
             	sprintf(text, "Video = %.2f FPS, OpenCV = %.2f FPS", userdata.video_fps, fps);
             	graphics_resource_render_text_ext(img_overlay2, 0, 0,
