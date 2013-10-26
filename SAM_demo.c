@@ -330,6 +330,8 @@ int main(int argc, char** argv) {
     int out_of_bound = 0; // used
     int face_flag = 0; // used
     int recalibrate = 0 ; // not used
+    int reset_timer = 0; 
+    clock_t begin = 0 , end = 0;
     /* ********************************* */
     while(1)
     {
@@ -410,7 +412,23 @@ int main(int argc, char** argv) {
 		digitalWrite(FACE, face_flag);
 		/* ***** */
 	    	/* Alert stage */
-		digitalWrite(BUZZ, (!slc_flag && out_of_bound));
+		if(out_of_bound)
+		{
+		 	if(!reset_timer)
+			{
+				begin = clock();
+				reset_timer = 1;
+			}
+			end = ((clock()- begin)/CLOCKS_PER_SEC);
+			printf("time lapsed: %d", end);
+			if(end > 2)
+				digitalWrite(BUZZ, !slc_flag);//(!slc_flag && out_of_bound));
+		}
+		else
+		{
+			reset_timer = 0;
+			digitalWrite(BUZZ, LOW);
+		}
 		/***************/
             	sprintf(text, "Video = %.2f FPS, OpenCV = %.2f FPS", userdata.video_fps, fps);
             	graphics_resource_render_text_ext(img_overlay2, 0, 0,
