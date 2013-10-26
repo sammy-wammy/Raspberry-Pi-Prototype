@@ -42,8 +42,4 @@ SET(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 SET(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/SAM_demo.dir/DependInfo.cmake"
-  "CMakeFiles/mmal_buffer_demo.dir/DependInfo.cmake"
-  "CMakeFiles/mmal_opencv_demo.dir/DependInfo.cmake"
-  "CMakeFiles/mmal_video_record.dir/DependInfo.cmake"
-  "CMakeFiles/mmaldemo.dir/DependInfo.cmake"
   )

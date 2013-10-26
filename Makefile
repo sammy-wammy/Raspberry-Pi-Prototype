@@ -111,58 +111,6 @@ SAM_demo/fast:
 	$(MAKE) -f CMakeFiles/SAM_demo.dir/build.make CMakeFiles/SAM_demo.dir/build
 .PHONY : SAM_demo/fast
 
-#=============================================================================
-# Target rules for targets named mmal_buffer_demo
-
-# Build rule for target.
-mmal_buffer_demo: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 mmal_buffer_demo
-.PHONY : mmal_buffer_demo
-
-# fast build rule for target.
-mmal_buffer_demo/fast:
-	$(MAKE) -f CMakeFiles/mmal_buffer_demo.dir/build.make CMakeFiles/mmal_buffer_demo.dir/build
-.PHONY : mmal_buffer_demo/fast
-
-#=============================================================================
-# Target rules for targets named mmal_opencv_demo
-
-# Build rule for target.
-mmal_opencv_demo: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 mmal_opencv_demo
-.PHONY : mmal_opencv_demo
-
-# fast build rule for target.
-mmal_opencv_demo/fast:
-	$(MAKE) -f CMakeFiles/mmal_opencv_demo.dir/build.make CMakeFiles/mmal_opencv_demo.dir/build
-.PHONY : mmal_opencv_demo/fast
-
-#=============================================================================
-# Target rules for targets named mmal_video_record
-
-# Build rule for target.
-mmal_video_record: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 mmal_video_record
-.PHONY : mmal_video_record
-
-# fast build rule for target.
-mmal_video_record/fast:
-	$(MAKE) -f CMakeFiles/mmal_video_record.dir/build.make CMakeFiles/mmal_video_record.dir/build
-.PHONY : mmal_video_record/fast
-
-#=============================================================================
-# Target rules for targets named mmaldemo
-
-# Build rule for target.
-mmaldemo: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 mmaldemo
-.PHONY : mmaldemo
-
-# fast build rule for target.
-mmaldemo/fast:
-	$(MAKE) -f CMakeFiles/mmaldemo.dir/build.make CMakeFiles/mmaldemo.dir/build
-.PHONY : mmaldemo/fast
-
 SAM_demo.o: SAM_demo.c.o
 .PHONY : SAM_demo.o
 
@@ -187,102 +135,6 @@ SAM_demo.c.s:
 	$(MAKE) -f CMakeFiles/SAM_demo.dir/build.make CMakeFiles/SAM_demo.dir/SAM_demo.c.s
 .PHONY : SAM_demo.c.s
 
-buffer_demo.o: buffer_demo.c.o
-.PHONY : buffer_demo.o
-
-# target to build an object file
-buffer_demo.c.o:
-	$(MAKE) -f CMakeFiles/mmal_buffer_demo.dir/build.make CMakeFiles/mmal_buffer_demo.dir/buffer_demo.c.o
-.PHONY : buffer_demo.c.o
-
-buffer_demo.i: buffer_demo.c.i
-.PHONY : buffer_demo.i
-
-# target to preprocess a source file
-buffer_demo.c.i:
-	$(MAKE) -f CMakeFiles/mmal_buffer_demo.dir/build.make CMakeFiles/mmal_buffer_demo.dir/buffer_demo.c.i
-.PHONY : buffer_demo.c.i
-
-buffer_demo.s: buffer_demo.c.s
-.PHONY : buffer_demo.s
-
-# target to generate assembly for a file
-buffer_demo.c.s:
-	$(MAKE) -f CMakeFiles/mmal_buffer_demo.dir/build.make CMakeFiles/mmal_buffer_demo.dir/buffer_demo.c.s
-.PHONY : buffer_demo.c.s
-
-main.o: main.c.o
-.PHONY : main.o
-
-# target to build an object file
-main.c.o:
-	$(MAKE) -f CMakeFiles/mmaldemo.dir/build.make CMakeFiles/mmaldemo.dir/main.c.o
-.PHONY : main.c.o
-
-main.i: main.c.i
-.PHONY : main.i
-
-# target to preprocess a source file
-main.c.i:
-	$(MAKE) -f CMakeFiles/mmaldemo.dir/build.make CMakeFiles/mmaldemo.dir/main.c.i
-.PHONY : main.c.i
-
-main.s: main.c.s
-.PHONY : main.s
-
-# target to generate assembly for a file
-main.c.s:
-	$(MAKE) -f CMakeFiles/mmaldemo.dir/build.make CMakeFiles/mmaldemo.dir/main.c.s
-.PHONY : main.c.s
-
-opencv_demo.o: opencv_demo.c.o
-.PHONY : opencv_demo.o
-
-# target to build an object file
-opencv_demo.c.o:
-	$(MAKE) -f CMakeFiles/mmal_opencv_demo.dir/build.make CMakeFiles/mmal_opencv_demo.dir/opencv_demo.c.o
-.PHONY : opencv_demo.c.o
-
-opencv_demo.i: opencv_demo.c.i
-.PHONY : opencv_demo.i
-
-# target to preprocess a source file
-opencv_demo.c.i:
-	$(MAKE) -f CMakeFiles/mmal_opencv_demo.dir/build.make CMakeFiles/mmal_opencv_demo.dir/opencv_demo.c.i
-.PHONY : opencv_demo.c.i
-
-opencv_demo.s: opencv_demo.c.s
-.PHONY : opencv_demo.s
-
-# target to generate assembly for a file
-opencv_demo.c.s:
-	$(MAKE) -f CMakeFiles/mmal_opencv_demo.dir/build.make CMakeFiles/mmal_opencv_demo.dir/opencv_demo.c.s
-.PHONY : opencv_demo.c.s
-
-video_record.o: video_record.c.o
-.PHONY : video_record.o
-
-# target to build an object file
-video_record.c.o:
-	$(MAKE) -f CMakeFiles/mmal_video_record.dir/build.make CMakeFiles/mmal_video_record.dir/video_record.c.o
-.PHONY : video_record.c.o
-
-video_record.i: video_record.c.i
-.PHONY : video_record.i
-
-# target to preprocess a source file
-video_record.c.i:
-	$(MAKE) -f CMakeFiles/mmal_video_record.dir/build.make CMakeFiles/mmal_video_record.dir/video_record.c.i
-.PHONY : video_record.c.i
-
-video_record.s: video_record.c.s
-.PHONY : video_record.s
-
-# target to generate assembly for a file
-video_record.c.s:
-	$(MAKE) -f CMakeFiles/mmal_video_record.dir/build.make CMakeFiles/mmal_video_record.dir/video_record.c.s
-.PHONY : video_record.c.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -291,26 +143,10 @@ help:
 	@echo "... depend"
 	@echo "... SAM_demo"
 	@echo "... edit_cache"
-	@echo "... mmal_buffer_demo"
-	@echo "... mmal_opencv_demo"
-	@echo "... mmal_video_record"
-	@echo "... mmaldemo"
 	@echo "... rebuild_cache"
 	@echo "... SAM_demo.o"
 	@echo "... SAM_demo.i"
 	@echo "... SAM_demo.s"
-	@echo "... buffer_demo.o"
-	@echo "... buffer_demo.i"
-	@echo "... buffer_demo.s"
-	@echo "... main.o"
-	@echo "... main.i"
-	@echo "... main.s"
-	@echo "... opencv_demo.o"
-	@echo "... opencv_demo.i"
-	@echo "... opencv_demo.s"
-	@echo "... video_record.o"
-	@echo "... video_record.i"
-	@echo "... video_record.s"
 .PHONY : help
 
 

@@ -33,6 +33,8 @@
 #define BUTTON 2
 #define SLC_BUTTON 3
 #define FACE 7
+#define L_TURN 4
+#define R_TURN 5
 /* ******************* */
 
 typedef struct {
@@ -88,7 +90,7 @@ static void video_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffe
             fps = frame_count;
         }
         userdata->video_fps = fps;
-        printf("  Frame = %d, Frame Post %d, Framerate = %.0f fps \n", frame_count, frame_post_count, fps);
+       // printf("  Frame = %d, Frame Post %d, Framerate = %.0f fps \n", frame_count, frame_post_count, fps);
     }
 
     mmal_buffer_header_release(buffer);
@@ -113,6 +115,8 @@ int main(int argc, char** argv) {
     pinMode(BUTTON, INPUT);
     pinMode(SLC_BUTTON, INPUT);
     pinMode(FACE, OUTPUT);
+    pinMode(L_TURN, INPUT);
+    pinMode(R_TURN, INPUT);
     /* *************** */
 
     MMAL_COMPONENT_T *camera = 0;
@@ -148,6 +152,7 @@ int main(int argc, char** argv) {
 
     /* setup opencv */
     userdata.cascade = (CvHaarClassifierCascade*) cvLoad("/usr/share/opencv/haarcascades/haarcascade_frontalface_alt.xml", NULL, NULL, NULL);
+    CvHaarClassifierCascade* eyes_cascade = (CvHaarClassifierCascade*) cvLoad("/usr/share/opencv/haarcascades/haarcascade_eye.xml", NULL, NULL, NULL); //<--
     userdata.storage = cvCreateMemStorage(0);
     userdata.image = cvCreateImage(cvSize(userdata.video_width, userdata.video_height), IPL_DEPTH_8U, 1);
     userdata.image2 = cvCreateImage(cvSize(userdata.opencv_width, userdata.opencv_height), IPL_DEPTH_8U, 1);
@@ -322,6 +327,7 @@ int main(int argc, char** argv) {
     /* *****SAM***** */
     /* system flags and control variables */
     int slc_flag = 0; // 1 == True, 0 == false
+    int l_turn, r_turn; // used
     int padding_flag = 1;// 1 == True, 0 == flase
     int padding_x = 0; // used
     int padding_y = 0; // used
@@ -330,8 +336,13 @@ int main(int argc, char** argv) {
     int out_of_bound = 0; // used
     int face_flag = 0; // used
     int recalibrate = 0 ; // not used
-    int reset_timer = 0; 
+    int reset_timer = 0; // used
     clock_t begin = 0 , end = 0;
+
+    CvMemStorage* eyes_storage = cvCreateMemStorage(0);
+    CvSeq* eyes_objects;
+    CvRect* eyes_box;
+    IplImage* face_img; 
     /* ********************************* */
     while(1)
     {
@@ -354,7 +365,7 @@ int main(int argc, char** argv) {
                	cvResize(userdata.image, userdata.image2, CV_INTER_LINEAR);
                 CvSeq* objects = cvHaarDetectObjects(userdata.image2, userdata.cascade, userdata.storage, 1.4, 3, 0, cvSize(100, 100), cvSize(150, 150));
                 CvRect* r;
-	       	/* silence input checkpoint */
+	       	/* input checkpoint (silance and turn signal) */
 		int last_slc = LOW;
 	       	int current_slc = digitalRead(SLC_BUTTON);
 	       	if(current_slc == HIGH && last_slc == LOW)
@@ -367,12 +378,13 @@ int main(int argc, char** argv) {
 		{
 			last_slc = digitalRead(SLC_BUTTON);
 		}
+		l_turn = digitalRead(R_TURN);
+		r_turn = digitalRead(L_TURN);
+		//printf("R:%d L:%d\n", r_turn, l_turn);
 		/* **** */
 		face_flag = (objects->total > 0);
               	if(face_flag)
                	{
-                	//digitalWrite(FACE, HIGH);
-			//face_flag = 1;
 		 	r = (CvRect*) cvGetSeqElem(objects, 0);
 			/* Calibration check *//*
          		int last_pad = LOW;
@@ -388,7 +400,7 @@ int main(int argc, char** argv) {
 			}
 			/* to be removed */
 			/* recalibration stage */
-                	if(padding_flag)
+                	if(padding_flag || l_turn || r_turn)
                   	{
                    		padding_w = (int)((r->width)*1.30);
                    		padding_h = (int)((r->height)*1.25);
@@ -408,6 +420,15 @@ int main(int argc, char** argv) {
 				    || ((r->y + r->height) > (padding_y + padding_h));
 			/* *********************** */
                	}
+		/* eye detection stage */
+		if(face_flag)
+		{
+			//face_img = cvGetSeqElem(objects, 0);
+			eyes_objects = cvHaarDetectObjects(userdata.image, eyes_cascade, eyes_storage, 1.4, 3, 0, cvSize(100,100), cvSize(150, 150));
+			//if(eyes_objects > 0)
+			printf("eyes:%d\n ", eyes_objects->total);
+		}
+		/* ******** */
   		/* face LED status */
 		digitalWrite(FACE, face_flag);
 		/* ***** */
