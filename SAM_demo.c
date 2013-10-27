@@ -337,12 +337,12 @@ int main(int argc, char** argv) {
     int face_flag = 0; // used
     int recalibrate = 0 ; // not used
     int reset_timer = 0; // used
-    clock_t begin = 0 , end = 0;
-
+    clock_t alarm_begin = 0 , alarm_end = 0;
+    clock_t cal_begin = 0, cal_end = 0;
     CvMemStorage* eyes_storage = cvCreateMemStorage(0);
     CvSeq* eyes_objects;
     CvRect* eyes_box;
-    IplImage* face_img; 
+    IplImage* face_img;
     /* ********************************* */
     while(1)
     {
@@ -407,6 +407,7 @@ int main(int argc, char** argv) {
                    		padding_y = (int)((r->y) - (padding_h)*0.05);
                    		padding_x = (int)((r->x) - (padding_w)*0.075);
                    		padding_flag = 0;
+				cal_begin = clock();
                   	}
 			/* ******************* */
                 	graphics_resource_fill(img_overlay, padding_x, padding_y, padding_w, padding_h, GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
@@ -421,7 +422,7 @@ int main(int argc, char** argv) {
 			/* *********************** */
                	}
 		/* eye detection stage */
-		if(face_flag)
+		if(face_flag && out_of_bound)
 		{
 			face_img = cvCreateImage(cvSize(r->width, r->height), userdata.image2->depth, userdata.image2->nChannels);
 			cvSetImageROI(userdata.image2, cvRect(r->x, r->y,r->width, r->height));
@@ -429,25 +430,37 @@ int main(int argc, char** argv) {
 			cvCopy(userdata.image2, face_img, NULL);
 			//cvSaveImage("face.jpg",face_img, 0 );
 			eyes_objects = cvHaarDetectObjects(face_img, eyes_cascade, eyes_storage, 1.1, 2, CV_HAAR_FIND_BIGGEST_OBJECT|CV_HAAR_SCALE_IMAGE, cvSize(20,20), cvSize(50, 50));
-			//if(eyes_objects > 0)
-			printf("eyes:%d\n ", eyes_objects->total);
+			if(eyes_objects > 0)
+			{
+				printf("eyes:%d\n ", eyes_objects->total);
+				//for(int i=0; i<eyes_objects->total; ++i)
+				//{
+					CvRect* r_eye = (CvRect*)cvGetSeqElem(eyes_objects, 1);
+					graphics_resource_fill(img_overlay,(r->x+ r_eye->x),(r->y+ r_eye->y), r_eye->width, r_eye->height,GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
+					graphics_resource_fill(img_overlay, r->x + r_eye->x + 1, r->x + r_eye->y + 1, r_eye->width - 2, r_eye->height - 2,GRAPHICS_RGBA32(0, 0, 0, 0x00));
+				//}
+			}
 			cvResetImageROI(userdata.image2);
 		}
 		/* ******** */
   		/* face LED status */
 		digitalWrite(FACE, face_flag);
 		/* ***** */
+		/* auto recalibrate */
+		cal_end = ((clock() - cal_begin)/CLOCKS_PER_SEC);
+		if(cal_end > 5 && !out_of_bound)
+			padding_flag = 1; // recal time to be decided 
 	    	/* Alert stage */
 		if(out_of_bound)
 		{
 		 	if(!reset_timer)
 			{
-				begin = clock();
+				alarm_begin = clock();
 				reset_timer = 1;
 			}
-			end = ((clock()- begin)/CLOCKS_PER_SEC);
-			printf("time lapsed: %d", end);
-			if(end > 2)
+			alarm_end = ((clock()- alarm_begin)/CLOCKS_PER_SEC);
+			printf("time lapsed: %d", alarm_end);
+			if(alarm_end > 2)
 				digitalWrite(BUZZ, !slc_flag);//(!slc_flag && out_of_bound));
 		}
 		else
