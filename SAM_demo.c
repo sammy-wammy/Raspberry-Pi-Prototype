@@ -380,7 +380,7 @@ int main(int argc, char** argv) {
 		}
 		l_turn = digitalRead(R_TURN);
 		r_turn = digitalRead(L_TURN);
-		//printf("R:%d L:%d\n", r_turn, l_turn);
+		printf("R:%d L:%d\n", r_turn, l_turn);
 		/* **** */
 		face_flag = (objects->total > 0);
               	if(face_flag)
@@ -423,10 +423,15 @@ int main(int argc, char** argv) {
 		/* eye detection stage */
 		if(face_flag)
 		{
-			//face_img = cvGetSeqElem(objects, 0);
-			eyes_objects = cvHaarDetectObjects(userdata.image, eyes_cascade, eyes_storage, 1.4, 3, 0, cvSize(100,100), cvSize(150, 150));
+			face_img = cvCreateImage(cvSize(r->width, r->height), userdata.image2->depth, userdata.image2->nChannels);
+			cvSetImageROI(userdata.image2, cvRect(r->x, r->y,r->width, r->height));
+			cvSetImageCOI(userdata.image2, 0);
+			cvCopy(userdata.image2, face_img, NULL);
+			//cvSaveImage("face.jpg",face_img, 0 );
+			eyes_objects = cvHaarDetectObjects(face_img, eyes_cascade, eyes_storage, 1.1, 2, CV_HAAR_FIND_BIGGEST_OBJECT|CV_HAAR_SCALE_IMAGE, cvSize(20,20), cvSize(50, 50));
 			//if(eyes_objects > 0)
 			printf("eyes:%d\n ", eyes_objects->total);
+			cvResetImageROI(userdata.image2);
 		}
 		/* ******** */
   		/* face LED status */
