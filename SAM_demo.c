@@ -400,7 +400,7 @@ int main(int argc, char** argv) {
 			}
 			/* to be removed */
 			/* recalibration stage */
-                	if(padding_flag || l_turn || r_turn)
+                	if(padding_flag)
                   	{
                    		padding_w = (int)((r->width)*1.30);
                    		padding_h = (int)((r->height)*1.25);
@@ -419,6 +419,10 @@ int main(int argc, char** argv) {
 				    || ((r->x+r->width) > (padding_x + padding_w))
 				    || (r->y < padding_y)
 				    || ((r->y + r->height) > (padding_y + padding_h));
+			if(l_turn)
+				out_of_bound = out_of_bound && !(r->x < padding_x);
+			if(r_turn)
+				out_of_bound = out_of_bound && !((r->x + r->width) > (padding_x + padding_w));
 			/* *********************** */
                	}
 		/* eye detection stage */
@@ -430,15 +434,19 @@ int main(int argc, char** argv) {
 			cvCopy(userdata.image2, face_img, NULL);
 			//cvSaveImage("face.jpg",face_img, 0 );
 			eyes_objects = cvHaarDetectObjects(face_img, eyes_cascade, eyes_storage, 1.1, 2, CV_HAAR_FIND_BIGGEST_OBJECT|CV_HAAR_SCALE_IMAGE, cvSize(20,20), cvSize(50, 50));
-			if(eyes_objects > 0)
+			if(eyes_objects->total > 0)
 			{
 				printf("eyes:%d\n ", eyes_objects->total);
 				//for(int i=0; i<eyes_objects->total; ++i)
 				//{
-					CvRect* r_eye = (CvRect*)cvGetSeqElem(eyes_objects, 1);
+					CvRect* r_eye = (CvRect*)cvGetSeqElem(eyes_objects, 0);
 					graphics_resource_fill(img_overlay,(r->x+ r_eye->x),(r->y+ r_eye->y), r_eye->width, r_eye->height,GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
 					graphics_resource_fill(img_overlay, r->x + r_eye->x + 1, r->x + r_eye->y + 1, r_eye->width - 2, r_eye->height - 2,GRAPHICS_RGBA32(0, 0, 0, 0x00));
-				//}
+				 	r_eye = (CvRect*)cvGetSeqElem(eyes_objects, 1);
+					graphics_resource_fill(img_overlay,(r->x+ r_eye->x),(r->y+ r_eye->y), r_eye->width, r_eye->height,GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
+					graphics_resource_fill(img_overlay, r->x + r_eye->x + 1, r->x + r_eye->y + 1, r_eye->width - 2, r_eye->height - 2,GRAPHICS_RGBA32(0, 0, 0, 0x00));
+
+                        	//}
 			}
 			cvResetImageROI(userdata.image2);
 		}
@@ -448,8 +456,8 @@ int main(int argc, char** argv) {
 		/* ***** */
 		/* auto recalibrate */
 		cal_end = ((clock() - cal_begin)/CLOCKS_PER_SEC);
-		if(cal_end > 5 && !out_of_bound)
-			padding_flag = 1; // recal time to be decided 
+		if(cal_end > 10 && !out_of_bound)
+			padding_flag = 0; // recal time to be decided 
 	    	/* Alert stage */
 		if(out_of_bound)
 		{
