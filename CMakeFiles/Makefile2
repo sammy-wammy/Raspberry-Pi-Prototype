@@ -88,6 +88,41 @@ clean: CMakeFiles/SAM_demo.dir/clean
 .PHONY : clean
 
 #=============================================================================
+# Target rules for target CMakeFiles/SAM_rec.dir
+
+# All Build rule for target.
+CMakeFiles/SAM_rec.dir/all:
+	$(MAKE) -f CMakeFiles/SAM_rec.dir/build.make CMakeFiles/SAM_rec.dir/depend
+	$(MAKE) -f CMakeFiles/SAM_rec.dir/build.make CMakeFiles/SAM_rec.dir/build
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/pi/rpidemo/rpi-mmal-demo/CMakeFiles  2
+	@echo "Built target SAM_rec"
+.PHONY : CMakeFiles/SAM_rec.dir/all
+
+# Include target in all.
+all: CMakeFiles/SAM_rec.dir/all
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/SAM_rec.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/pi/rpidemo/rpi-mmal-demo/CMakeFiles 1
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/SAM_rec.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/pi/rpidemo/rpi-mmal-demo/CMakeFiles 0
+.PHONY : CMakeFiles/SAM_rec.dir/rule
+
+# Convenience name for target.
+SAM_rec: CMakeFiles/SAM_rec.dir/rule
+.PHONY : SAM_rec
+
+# clean rule for target.
+CMakeFiles/SAM_rec.dir/clean:
+	$(MAKE) -f CMakeFiles/SAM_rec.dir/build.make CMakeFiles/SAM_rec.dir/clean
+.PHONY : CMakeFiles/SAM_rec.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/SAM_rec.dir/clean
+.PHONY : clean
+
+#=============================================================================
 # Special targets to cleanup operation of make.
 
 # Special rule to run CMake to check the build system integrity.

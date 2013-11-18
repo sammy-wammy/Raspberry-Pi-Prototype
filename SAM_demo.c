@@ -344,15 +344,17 @@ int main(int argc, char** argv) {
     int face_flag = 0; // used
     int recalibrate = 0 ; // not used
     int reset_timer = 0; // used
+    int eyes_detected = 0;
     clock_t alarm_begin = 0 , alarm_end = 0;
     clock_t cal_begin = 0, cal_end = 0;
     clock_t eye_begin = 0, eye_end = 0;
     CvMemStorage* eyes_storage = cvCreateMemStorage(0);
     CvSeq* eyes_objects;
-    CvRect* eyes_box;
+    //CvRect* eyes_box;
+    CvRect* r_eye;
     IplImage* face_img;
     IplImage* eye_img;
-    //CvVideoWriter* record = (CvVideoWriter*) cvCreateVideoWriter("log_a.avi", -1/*CV_FOURCC('X', 'V', 'I', 'D')*/,userdata.video_fps, cvSize(userdata.video_width, userdata.video_height), 0);
+    IplImage* eye_img_resized;
     /* ********************************* */
     while(1)
     {
@@ -373,13 +375,9 @@ int main(int argc, char** argv) {
             	graphics_resource_fill(img_overlay, 0, 0, GRAPHICS_RESOURCE_WIDTH, GRAPHICS_RESOURCE_HEIGHT, GRAPHICS_RGBA32(0, 0, 0, 0x00));
             	graphics_resource_fill(img_overlay2, 0, 0, GRAPHICS_RESOURCE_WIDTH, GRAPHICS_RESOURCE_HEIGHT, GRAPHICS_RGBA32(0, 0, 0, 0x00));
                	cvResize(userdata.image, userdata.image2, CV_INTER_LINEAR);
-		//cvEqualizeHist(userdata.image2, userdata.image2);
+		cvEqualizeHist(userdata.image2, userdata.image2);
                 CvSeq* objects = cvHaarDetectObjects(userdata.image2, userdata.cascade, userdata.storage, 1.4, 3, 0, cvSize(100, 100), cvSize(150, 150));
                 CvRect* r;
-		/* recrding */
-		//if(record == NULL) printf("NULL\n");
-		//cvWriteFrame(record, userdata.image2);
-		/* ******* */
 	       	/* input checkpoint (silance and turn signal) */
 		int last_slc = LOW;
 	       	int current_slc = digitalRead(SLC_BUTTON);
@@ -395,13 +393,12 @@ int main(int argc, char** argv) {
 		}
 		l_turn = digitalRead(R_TURN);
 		r_turn = digitalRead(L_TURN);
-		//printf("R:%d L:%d\n", r_turn, l_turn);
+		printf("R:%d L:%d\n", r_turn, l_turn);
 		/* **** */
 		face_flag = (objects->total > 0);
               	if(face_flag)
                	{
 			r = (CvRect*) cvGetSeqElem(objects, 0);
-			eye_begin = clock();
 			/* Calibration check *//*
          		int last_pad = LOW;
 			int current_pad = digitalRead(BUTTON);
@@ -417,29 +414,34 @@ int main(int argc, char** argv) {
 			/* to be removed */
 			/* recalibration stage */
 			/* avg */
-			if(avg_iteration < avg_max)
+			if(!draw_flag)
 			{
-				avg_x += r->x;
-				avg_y += r->y;
-				avg_w += r->width;
-				avg_h += r->height;
-				avg_iteration++;
-			}
-			else
-			{
-				padding_x = (int)(((avg_x) - (0.075*avg_w))/avg_max);
-				padding_y = (int)(((avg_y) - (0.015*avg_h))/avg_max);
-				padding_w = (int)(1.3*avg_w/avg_max);
-				padding_h = (int)(1.25*avg_h/avg_max);
-				draw_flag = 1;
-				cal_begin = clock();
+				if(avg_iteration < avg_max)
+				{
+					avg_x += r->x;
+					avg_y += r->y;
+					avg_w += r->width;
+					avg_h += r->height;
+					avg_iteration++;
+				}
+				else
+				{
+					padding_x = (int)(((avg_x) - (0.075*avg_w))/avg_max);
+					padding_y = (int)(((avg_y) - (0.015*avg_h))/avg_max);
+					padding_w = (int)(1.3*avg_w/avg_max);
+					padding_h = (int)(1.25*avg_h/avg_max);
+					draw_flag = 1;
+					cal_begin = clock();
+					eye_begin = clock();
+				}
 			}
 			/* *** */
 			if(draw_flag)
 			{
                 		if(padding_flag)
                   		{
-                   			padding_w = (int)((r->width)*1.30);
+                			printf("five seconds\n");
+					padding_w = (int)((r->width)*1.30);
                    			padding_h = (int)((r->height)*1.25);
                    			padding_y = (int)((r->y) - (padding_h)*0.05);
                    			padding_x = (int)((r->x) - (padding_w)*0.075);
@@ -454,49 +456,63 @@ int main(int argc, char** argv) {
 					    || ((r->x+r->width) > (padding_x + padding_w))
 					    || (r->y < padding_y)
 				   	    || ((r->y + r->height) > (padding_y + padding_h));
-				if(l_turn)
-					out_of_bound = out_of_bound && !(r->x < padding_x);
-				if(r_turn)
-					out_of_bound = out_of_bound && !((r->x + r->width) > (padding_x + padding_w));
+				//if(l_turn || r_turn)
+					//out_of_bound = out_of_bound && !(r->x < padding_x);
+				//if(r_turn)
+					//out_of_bound = 0;//out_of_bound && !((r->x + r->width) > (padding_x + padding_w));
 				/* *********************** */
 			}
 			graphics_resource_fill(img_overlay, r->x, r->y, r->width, r->height, GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
 	               	graphics_resource_fill(img_overlay, r->x + 1, r->y + 1, r->width - 2, r->height - 2, GRAPHICS_RGBA32(0, 0, 0, 0x00));
                	}
 		/* eye detection stage */
-		if(0)// && out_of_bound)
+		eye_end = ((clock() - eye_begin)/CLOCKS_PER_SEC);
+		printf("eyes timer: %d\n", eye_end);
+		if(face_flag || out_of_bound)
 		{
+			eye_begin = clock();
 			face_img = cvCreateImage(cvSize(r->width, r->height), userdata.image2->depth, userdata.image2->nChannels);
 			cvSetImageROI(userdata.image2, cvRect(r->x, r->y,r->width, r->height));
 			cvSetImageCOI(userdata.image2, 0);
 			cvCopy(userdata.image2, face_img, NULL);
 			cvResetImageROI(userdata.image2);
-			//cvSaveImage("face-img.jpg",face_img, 0 );
 			cvEqualizeHist(face_img, face_img);
 			eyes_objects = cvHaarDetectObjects(face_img, eyes_cascade, eyes_storage, 1.1, 2, CV_HAAR_FIND_BIGGEST_OBJECT|CV_HAAR_SCALE_IMAGE, cvSize(20,20), cvSize(50, 50));
+			eyes_detected = (eyes_objects->total > 0);
 			printf("eyes:%d\n ", eyes_objects->total);
-			if(eyes_objects->total > 0)
-			{
-				//printf("face:%d ", objects->total);
-				CvRect* r_eye = (CvRect*)cvGetSeqElem(eyes_objects, 1);
-				eye_img = cvCreateImage(cvSize(r_eye->width, r_eye->height), face_img->depth, face_img->nChannels);
-				cvSetImageROI(face_img, cvRect(r_eye->x, r_eye->y, r_eye->width, r_eye->height));
-				cvSetImageCOI(face_img, 0);
-				cvCopy(face_img, eye_img, NULL);
-				cvResetImageROI(face_img);
-				//IplImage* bin = cvCreateImage(cvSize(eye_img->width, eye_img->height), eye_img->depth, eye_img->nChannels);
-				//cvThreshold(eye_img, bin, 50, 255,0);
-				//cvSaveImage("bin eye.jpg", bin, 0);
-				/*cvSetImageROI(face_img, cvRect(r_eye->x + (0.5*r->width), r_eye->y, r_eye->width, r_eye->height));
-				cvSetImageCOI(face_img, 0);
-				cvCopy(face_img, eye_img, NULL);
-				cvSaveImage("left eye.jpg", eye_img, 0);
-				cvResetImageROI(face_img);*/
-				graphics_resource_fill(img_overlay,(r->x+ r_eye->x),(r->y+ r_eye->y), r_eye->width, r_eye->height,GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
-				//graphics_resource_fill(img_overlay, r->x + r_eye->x + 1, r->x + r_eye->y + 1, r_eye->width - 2, r_eye->height - 2,GRAPHICS_RGBA32(0, 0, 0, 0x00));				 	r_eye = (CvRect*)cvGetSeqElem(eyes_objects, 1);
-				//graphics_resource_fill(img_overlay,(r->x+ r_eye->x) + (0.5*r->width),(r->y+ r_eye->y), r_eye->width, r_eye->height,GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
-				//graphics_resource_fill(img_overlay, r->x + r_eye->x + 1 + (0.5*r->width), r->x + r_eye->y + 1, r_eye->width - 2, r_eye->height - 2,GRAPHICS_RGBA32(0, 0, 0, 0x00));
-			}
+			//if(eye_detected)
+			//{
+				//r_eye = (CvRect*)cvGetSeqElem(eyes_objects, 1);
+				//int i;
+				//for(i=0; i<= eyes_objects->total; i++)
+				//{
+					//CvRect* r_eye = (CvRect*)cvGetSeqElem(eyes_objects, 0);
+					//CvPoint p1;
+					//p1.x = (r->x + r_eye->x + r_eye->width * 0.5);
+					//p1.y = (r->y + r_eye->y + r_eye->height * 0.5);
+
+					//CvRect* l_eye = (CvRect*)cvGetSeqElem(eyes_objects, 1);
+					//CvPoint p2;
+					//p2.x = (r->x + l_eye->x + l_eye->width * 0.5);
+					//p2.y = (r->y + l_eye->y + l_eye->height * 0.5);
+
+					//int radius_1 = cvRound((r_eye->width + r_eye->height) * 0.25);
+					//int radius_2 = cvRound((l_eye->width + l_eye->height) * 0.25);
+
+					//cvCircle(userdata.image2, p1, radius_1, cvScalar(255,0,0,0), 1, 8, 0);
+					//cvCircle(userdata.image2, p2, radius_2, cvScalar(255,0,0,0), 1, 8, 0);
+					//cvSaveImage("eyecap.jpg" , userdata.image2, 0);
+					//graphics_resource_fill(img_overlay,(r->x+ r_eye->x),(r->y+ r_eye->y), r_eye->width, r_eye->height,GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
+					//CvRect* l_eye = (CvRect*)cvGetSeqElem(eyes_objects, 1);
+					//graphics_resource_fill(img_overlay,(r->x+ l_eye->x),(r->y+ l_eye->y), l_eye->width, l_eye->height,GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
+					//graphics_resource_fill(img_overlay, r->x + r_eye->x , r->y + r_eye->y , r_eye->width, r_eye->height,GRAPHICS_RGBA32(0, 0, 0, 0x88));
+					//graphics_resource_fill(img_overlay, r->x + r_eye->x + 1, r->y + r_eye->y + 1, r_eye->width - 2, r_eye->height - 2,GRAPHICS_RGBA32(0, 0, 0, 0x00));
+					//graphics_resource_fill(img_overlay, r->x + l_eye->x , r->y + l_eye->y , l_eye->width, l_eye->height,GRAPHICS_RGBA32(0, 0, 0, 0x88));
+					//graphics_resource_fill(img_overlay, r->x + l_eye->x + 1, r->y + l_eye->y + 1, l_eye->width - 2, l_eye->height - 2,GRAPHICS_RGBA32(0, 0, 0, 0x00));
+					//graphics_resource_fill(img_overlay,(r->x+ r_eye->x) + (0.5*r->width),(r->y+ r_eye->y), r_eye->width, r_eye->height,GRAPHICS_RGBA32(0xff, 0, 0, 0x88));
+					//graphics_resource_fill(img_overlay, r->x + r_eye->x + 1 + (0.5*r->width), r->x + r_eye->y + 1, r_eye->width - 2, r_eye->height - 2,GRAPHICS_RGBA32(0, 0, 0, 0x00));
+				//}
+			//}
 		}
 		/* ******** */
   		/* face LED status */
@@ -504,10 +520,10 @@ int main(int argc, char** argv) {
 		/* ***** */
 		/* auto recalibrate */
 		cal_end = ((clock() - cal_begin)/CLOCKS_PER_SEC);
-		if(cal_end > 10 && !out_of_bound)
-			padding_flag = 0; // recal time to be decided
+		if(cal_end > 5)//) && !out_of_bound)
+			padding_flag = 1; // recal time to be decided
 	    	/* Alert stage */
-		if(out_of_bound)
+		if(!(l_turn || r_turn)&&(!face_flag || (out_of_bound&&!eyes_detected)))
 		{
 		        //cvReleaseVideoWriter(&record);
 			//return 1;
@@ -517,7 +533,7 @@ int main(int argc, char** argv) {
 				reset_timer = 1;
 			}
 			alarm_end = ((clock()- alarm_begin)/CLOCKS_PER_SEC);
-			printf("time lapsed: %d", alarm_end);
+			printf("time lapsed: %d\n", alarm_end);
 			if(alarm_end > 0)
 				digitalWrite(BUZZ, !slc_flag);//(!slc_flag && out_of_bound));
 		}

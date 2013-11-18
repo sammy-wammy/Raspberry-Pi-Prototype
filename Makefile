@@ -111,6 +111,19 @@ SAM_demo/fast:
 	$(MAKE) -f CMakeFiles/SAM_demo.dir/build.make CMakeFiles/SAM_demo.dir/build
 .PHONY : SAM_demo/fast
 
+#=============================================================================
+# Target rules for targets named SAM_rec
+
+# Build rule for target.
+SAM_rec: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 SAM_rec
+.PHONY : SAM_rec
+
+# fast build rule for target.
+SAM_rec/fast:
+	$(MAKE) -f CMakeFiles/SAM_rec.dir/build.make CMakeFiles/SAM_rec.dir/build
+.PHONY : SAM_rec/fast
+
 SAM_demo.o: SAM_demo.c.o
 .PHONY : SAM_demo.o
 
@@ -135,6 +148,30 @@ SAM_demo.c.s:
 	$(MAKE) -f CMakeFiles/SAM_demo.dir/build.make CMakeFiles/SAM_demo.dir/SAM_demo.c.s
 .PHONY : SAM_demo.c.s
 
+SAM_rec.o: SAM_rec.c.o
+.PHONY : SAM_rec.o
+
+# target to build an object file
+SAM_rec.c.o:
+	$(MAKE) -f CMakeFiles/SAM_rec.dir/build.make CMakeFiles/SAM_rec.dir/SAM_rec.c.o
+.PHONY : SAM_rec.c.o
+
+SAM_rec.i: SAM_rec.c.i
+.PHONY : SAM_rec.i
+
+# target to preprocess a source file
+SAM_rec.c.i:
+	$(MAKE) -f CMakeFiles/SAM_rec.dir/build.make CMakeFiles/SAM_rec.dir/SAM_rec.c.i
+.PHONY : SAM_rec.c.i
+
+SAM_rec.s: SAM_rec.c.s
+.PHONY : SAM_rec.s
+
+# target to generate assembly for a file
+SAM_rec.c.s:
+	$(MAKE) -f CMakeFiles/SAM_rec.dir/build.make CMakeFiles/SAM_rec.dir/SAM_rec.c.s
+.PHONY : SAM_rec.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -142,11 +179,15 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... SAM_demo"
+	@echo "... SAM_rec"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... SAM_demo.o"
 	@echo "... SAM_demo.i"
 	@echo "... SAM_demo.s"
+	@echo "... SAM_rec.o"
+	@echo "... SAM_rec.i"
+	@echo "... SAM_rec.s"
 .PHONY : help
 
 

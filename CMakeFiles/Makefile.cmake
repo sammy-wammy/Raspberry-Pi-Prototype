@@ -42,4 +42,5 @@ SET(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 SET(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/SAM_demo.dir/DependInfo.cmake"
+  "CMakeFiles/SAM_rec.dir/DependInfo.cmake"
   )

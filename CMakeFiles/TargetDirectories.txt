@@ -1,1 +1,2 @@
 /home/pi/rpidemo/rpi-mmal-demo/CMakeFiles/SAM_demo.dir
+/home/pi/rpidemo/rpi-mmal-demo/CMakeFiles/SAM_rec.dir
